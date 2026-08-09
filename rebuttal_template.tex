@@ -1,61 +1,92 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{times}
-
-% numbers option provides compact numerical references in the text. 
-\usepackage[numbers]{natbib}
-\usepackage{multicol}
-\usepackage{graphicx}
-
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{balance}
 \usepackage[bookmarks=true]{hyperref}
 
-\pdfinfo{
-   /Author (Homer Simpson)
-   /Title  (Robots: Our new overlords)
-   /CreationDate (D:20101201120000)
-   /Subject (Robots)
-   /Keywords (Robots;Overlords)
+\hypersetup{
+  pdftitle={Rebuttal for CoRL Submission 18},
+  pdfauthor={},
+  pdfsubject={CoRL rebuttal},
+  pdfkeywords={}
 }
-\newcommand{\newparagraph}[1]{{\bf #1.}}
+\newcommand{\newparagraph}[1]{{\bf #1}}
 
 \begin{document}
 
-%%%%%%%%% TITLE - PLEASE UPDATE
-\title{Rebuttal  for CoRL Submission \# X\vspace{-1cm}}  % **** Enter the submission number here
+\title{Rebuttal for CoRL Submission \#18\vspace{-1cm}}
 \maketitle
 \thispagestyle{empty}
+\balance
 
+We thank the reviewers and Area Chair for identifying important ambiguities in
+the optimization, masking, ablations, and real-robot protocol. We agree with
+these concerns and describe concrete corrections and controlled experiments
+below. The current results are preliminary sanity checks; final controlled
+results will replace the marked entries.
 
-%%%%%%%%% BODY TEXT - ENTER YOUR RESPONSE BELOW
-
-\newparagraph{Purpose} The primary purpose of the rebuttal is to correct any factual inaccuracies in the reviews and to provide clarifications or additional details specifically requested by the reviewers.
-
-\newparagraph{Template} This year, we are providing a rebuttal template for standardization. All content (including references) must fit in one page. Please do not change the font size or spacing; rebuttals that do not adhere to the provided template will be desk rejected. 
-
-\newparagraph{Anonymity} The rebuttal must remain anonymous. Do not include any external links (e.g., videos, code, websites).
-
-\newparagraph{Process} You will not be able to respond to individual reviewers on OpenReview, nor can you update your paper during the rebuttal process. However, if your paper is accepted, you will have an opportunity to incorporate reviewer and Area Chair feedback into the camera-ready version.
-
-\newparagraph{Submission} To submit your rebuttal, click the “Rebuttal” button on your paper’s OpenReview page, upload your PDF, and submit the form.
-
-
-%-------------------------------------------------------------------------
-\newparagraph{Acknowledgements}
-This template is inspired by the rebuttal template used by the CVPR and RSS conferences. 
-
-\begin{figure}[t]
+\begin{table}[h]
   \centering
-  \includegraphics[width=0.6\linewidth]{corl_2026_logo.png}
-  \caption{Example figure: CoRL rebuttal template. \label{fig:corl_logo_small}}
-\end{figure}
+  \caption{SWIPE success/rollouts with 95\% Wilson intervals. ``Pilot'' denotes
+  the current hand-stabilized sanity runs; the aligned fixed-mount evaluation
+  is ongoing.}
+  \label{tab:rebuttal_swipe}
+  \begin{tabular}{lcc}
+    \toprule
+    Policy & Pilot ($N{=}5$) & Fixed mount \\
+    \midrule
+    Legacy VPCE-DP (reference) & $4/5\ [0.38,0.96]$ & TBD \\
+    Clean full, $\alpha{=}2$   & $2/5\ [0.12,0.77]$ & TBD \\
+    Clean full, $\alpha{=}1$   & $3/5\ [0.23,0.88]$ & TBD \\
+    Clean no-gating            & $0/5\ [0.00,0.43]$ & TBD \\
+    Phase-conditioned DP       & $2/5\ [0.12,0.77]$ & TBD \\
+    Progress-conditioned DP    & $3/5\ [0.23,0.88]$ & TBD \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
+The pilot is reported for transparency, not as a model ranking: the first
+clean-full batch used a lower execution speed, while the legacy reference used
+a different workspace clip. The final column uses one frozen controller,
+identical near-contact initialization, and a rigidly mounted reader.
 
-%%%%%%%%% REFERENCES
-{
-  \small
-  \bibliographystyle{plainnat}
-  \bibliography{references}
-}
+\newparagraph{Q1: Is VPCE only task progress or phase?}
+We trained same-backbone Phase-DP and Progress-DP baselines that replace the
+VPCE horizon with a progress-derived four-bin phase or normalized trajectory
+progress and do not use tactile-derived contact supervision. Their pilot point
+estimates are comparable to the clean full models, and all intervals are wide;
+therefore these data do not yet establish that VPCE is superior to explicit
+progress. We will base the revision on the aligned fixed-mount results. If the
+baselines remain competitive, we will narrow the claim: on SWIPE, contact
+timing overlaps task phase, while VPCE predicts it online from RGB and motion
+without requiring oracle trajectory progress.
+
+\newparagraph{Q2--Q3: Loss weighting and proprioceptive masking.}
+We agree that a learned scalar optimized through the same weighted denoising
+objective can be driven to its lower bound. We replace it with the fixed,
+bounded schedule $w(c)=\operatorname{clip}(1+\alpha c,1,w_{\max})$ and test
+$(\alpha,w_{\max})=(2,3)$ and $(1,2)$. We also agree that the original
+post-encoder low-dimensional mask was too coarse. The revised policy always
+retains proprioception and gripper width and hard-masks only tactile/contact
+features. These are direct implementation corrections rather than a defense
+of the original choices.
+
+\newparagraph{Q4: Is feature gating necessary?}
+The submitted pilot gave $9/10$ for both full and no-gating variants, suggesting
+that gating may be auxiliary. The revised no-gating sanity run ($0/5$) points
+in the opposite direction, but its small sample and the pilot protocol do not
+support a causal conclusion. We therefore will not claim that gating is either
+necessary or dispensable until the aligned results are complete, and will move
+the component ablations into the main text.
+
+\newparagraph{Human-held props and limitations.}
+We agree that hand compliance can assist alignment, even without deliberate
+trajectory correction. We therefore separate hand-stabilized pilots from the
+rigid-mount evaluation and use the latter to answer this concern. Every SWIPE
+trial uses a 60-s timeout and succeeds only when the reader's internal roller
+completes one effective rotation. Finally, VPCE is target-adapted using
+task-specific tactile demonstrations and calibrated contact labels; we do not
+claim zero-shot transfer to unseen tasks, objects, or viewpoints.
 
 \end{document}
-
-
