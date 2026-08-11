@@ -126,8 +126,16 @@ ambiguity with the fixed bounded schedule
 $w(c)=\operatorname{clip}(1+c,1,2)$, which smoothly maps free-space samples to
 weight $1$ and high-contact-probability samples to at most $2$, without a
 learned collapse direction. The updated $15/25$ result confirms that this
-well-posed refinement preserves real-robot functionality. Together with the
-submitted no-loss-weighting result ($8/10$), this experiment shows that the
+well-posed refinement preserves real-robot functionality. We further evaluated
+the fixed family
+$w_{\alpha}(c)=\operatorname{clip}(1+\alpha c,1,1+\alpha)$ in a matched SWIPE
+sweep with $10$ real-robot rollouts per value. Success was $10/10$ for
+$\alpha{=}1$, compared with $7/10$, $6/10$, and $3/10$ for
+$\alpha{=}0.5$, $0.25$, and $2$, respectively. Thus moderate contact emphasis
+works best in this setting: weaker schedules provide less rebalancing, whereas
+$\alpha{=}2$ over-emphasizes contact-imminent samples. We select $\alpha{=}1$
+and will report this sensitivity study in the revision. Together with the
+submitted no-loss-weighting result ($8/10$), these experiments show that the
 central contact-anticipation effect does not depend on the original learned
 weighting term, while the fixed schedule retains the intended emphasis on
 contact-critical samples without an optimization shortcut.
@@ -187,10 +195,13 @@ We thank the reviewer for raising this important extension. In the current
 setup, two planar fingertip tactile sensors and the gripper/task geometry yield
 a repeatable dominant interaction direction. We therefore derive the binary
 contact event from the temporal change of a base-frame $z$-force proxy; the
-task-specific threshold is selected from training-demonstration force-change
-distributions and then held fixed. This is sufficient for the present tasks
-because VPCE predicts whether contact is imminent, rather than regressing the
-full contact wrench. We agree that dexterous hands, curved tactile surfaces, and
+same threshold of $0.095$ is reused for most tasks. For the few domains with a
+different sensor scale, the threshold is selected once from the
+training-demonstration force-change distribution and then held fixed. All frame
+labels are generated automatically from the tactile stream; no manual
+frame-level contact annotation is required. This is sufficient for the present
+tasks because VPCE predicts whether contact is imminent, rather than regressing
+the full contact wrench. We agree that dexterous hands, curved tactile surfaces, and
 contacts with changing normals require direction-agnostic or local-frame labels.
 A direct extension is to threshold the resultant change
 $\lVert\Delta\mathbf{F}\rVert_2$, or combine local normal and shear changes with
