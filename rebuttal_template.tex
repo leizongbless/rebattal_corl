@@ -18,72 +18,101 @@
 \maketitle
 \thispagestyle{empty}
 
-We thank the reviewers and Area Chair for identifying important ambiguities in
-the optimization, masking, ablations, and real-robot protocol. We agree that
-two implementation choices require correction, and that the component and
-human-held evidence must be separated more carefully. Below we report the
-currently auditable results and mark the missing controlled comparisons.
+We thank the reviewers and Area Chair for identifying four concrete issues.
+We agree that the original learned loss weight and whole-lowdim mask require
+correction, and we separate the operator-held evidence below from the still
+missing fixed-mount control.
 
 \begin{table}[h]
   \centering
-  \setlength{\tabcolsep}{4pt}
-  \caption{Operator-reported, operator-held SWIPE results for isolated changes
-  to Legacy Full (success is one internal roller rotation within 60 s). CIs are
-  95\% Wilson intervals; the aligned Legacy Full anchor is not yet available.}
+  \setlength{\tabcolsep}{3.5pt}
+  \caption{Latest operator-reported, operator-held SWIPE results. Success is one
+  complete roller rotation within 60 s. These preliminary counts are not pooled
+  with fixed-mount trials; Wilson 95\% intervals are shown.}
   \label{tab:rebuttal_swipe}
   \begin{tabular}{lcc}
     \toprule
-    Isolated change from Legacy Full & Success/$N$ & 95\% CI \\
+    Policy or isolated change & Success/$N$ & 95\% CI \\
     \midrule
-    None (same-protocol Legacy Full) & TBD & TBD \\
-    Learned loss weight $\rightarrow$ fixed $1+p$ & $10/10$ & $[0.722,1.000]$ \\
-    Whole-lowdim $\rightarrow$ tactile-only mask & $13/20$ & $[0.433,0.819]$ \\
-    Unbounded $\rightarrow$ bounded gate & $7/20$ & $[0.181,0.567]$ \\
+    Legacy Full & $9/10$ & $[.596,.982]$ \\
+    Phase-DP$^\dagger$ & $12/20$ & $[.387,.781]$ \\
+    Progress-DP$^\dagger$ & $14/20$ & $[.481,.855]$ \\
+    Learned weight $\rightarrow$ fixed $1+c$ & $15/25$ & $[.407,.766]$ \\
+    Whole-lowdim $\rightarrow$ tactile-only mask & $13/20$ & $[.433,.819]$ \\
+    No-gating retrain & $8/20$ & $[.219,.613]$ \\
+    Unbounded $\rightarrow$ bounded gate & $7/20$ & $[.181,.567]$ \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-These isolated retrainings change one mechanism at a time. The fixed Alpha1
-weight is the strongest current variant; an exploratory two-sided Fisher test
-against the bounded-gate variant gives $p{=}0.0011$. We do not claim improvement
-over Legacy Full until its same-protocol $N{=}20$ anchor is complete. We also
-exclude the earlier $N{=}5$ hand-held pilots and unlabelled rollout files from
-this table rather than pooling incompatible protocols.
+\newparagraph{Q1: Contact anticipation versus task progress.}
+Phase-DP and Progress-DP use the same diffusion backbone and add only a
+four-phase or normalized-progress condition. VPCE instead predicts a continuous
+$15$-step future-contact horizon online from current wrist RGB and recent robot
+motion; unlike a hierarchical policy, it neither switches sub-policies nor uses
+a discrete high-level controller. Because the archived real-time fallback for
+Phase/Progress advanced its private clock faster than physical control time,
+the rows marked $\dagger$ remain preliminary pending an elapsed-time audit and
+an aligned $N{=}20$ rerun; we make no policy-level superiority claim from them.
 
-\newparagraph{Q2--Q3: Loss weighting and proprioceptive masking.}
-We agree that a learned scalar optimized through the same weighted denoising
-objective can be driven to its lower bound. We replace it with the fixed,
-bounded schedule $w(c)=\operatorname{clip}(1+c,1,2)$. Its $10/10$ preliminary
-result supports retaining this correction and extending it to $N{=}20$. We
-also agree that the original post-encoder whole-lowdim mask was too coarse.
-The corrected routing always retains proprioception and gripper width and
-masks only tactile features. Its $13/20$ result establishes usability, but not
-superiority to the pending Legacy Full anchor. These are implementation
-corrections rather than a defense of the original formulations.
+As a predictor-level diagnostic on held-out trajectories, however, VPCE is not
+explained by progress alone:
+\begin{table}[h]
+  \centering
+  \setlength{\tabcolsep}{3pt}
+  \caption{Contact prediction AUC/F1 using phase, progress, or VPCE.}
+  \label{tab:rebuttal_predictor}
+  \begin{tabular}{lccc}
+    \toprule
+    Task & Phase-4 & Progress-20 & VPCE \\
+    \midrule
+    SWIPE  & $.670/.000$ & $.853/.597$ & $\mathbf{.963/.759}$ \\
+    WIPE   & $.666/.000$ & $.743/.406$ & $\mathbf{.885/.705}$ \\
+    INSERT & $.684/.000$ & $.808/.539$ & $\mathbf{.946/.735}$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+Progress captures some timing, but vision, motion, and tactile-derived contact
+supervision add information beyond normalized trajectory time. We nevertheless
+do not claim a universal transferable representation: source-teacher zero-shot
+AUC/F1 is $.500/.095$ on board and $.662/.666$ on card, so the current method is
+a target-adapted contact prior requiring target tactile demonstrations.
 
-\newparagraph{Q4: Is feature gating necessary?}
-The bounded-gate variant obtains $7/20$, and qualitative traces show reluctance
-to advance unless a strong visual cue is introduced. Thus the tested gate range
-appears to over-suppress vision. This result rejects that parameterization, not
-gating in general. We will soften the independent gating claim, select one
-weaker setting using offline prediction/action traces, freeze it before robot
-evaluation, and report the result even if it is negative.
+\newparagraph{Q2: Loss-weight optimization.}
+The concern is correct. The original $w(c)=\operatorname{clip}(1+
+\operatorname{softplus}(\gamma)c+\delta,1)$ is optimized by the same weighted
+denoising loss, which encourages smaller weights; checkpoint inspection gives
+$w\approx1.000$--$1.005$. The lower bound prevents down-weighting but reduces
+the term to ordinary DP loss. We therefore replace it with the fixed bounded
+schedule $w(c)=\operatorname{clip}(1+c,1,2)$. The updated $15/25$ result shows
+that this correction remains usable, not that loss weighting alone improves
+over the incompletely aligned Legacy Full control.
 
-\newparagraph{Q1: Is VPCE only task progress or phase?}
-We implemented same-backbone Phase-DP and Progress-DP baselines, but found that
-their real-time conditioning must be aligned to actual elapsed/control time;
-therefore the existing pilot and unlabelled rerun files are not used as formal
-evidence. We will report corrected fixed-mount $N{=}20$ comparisons. Until then,
-we narrow the claim: VPCE predicts a tactile-supervised future-contact signal
-online from RGB and motion, but superiority to explicit progress remains TBD.
+\newparagraph{Q3: Masking and free-space motion.}
+We agree that Eq.~(9) was too coarse: the post-encoder block included
+proprioception, gripper width, and tactile features. The revision always retains
+proprioception and gripper width and masks only tactile/contact features; its
+preliminary result is $13/20$. This preserves closed-loop state feedback, while
+action-chunk prediction and receding-horizon execution provide additional
+temporal coherence. We do not claim that the original whole-block mask formally
+guaranteed smoothness.
 
-\newparagraph{Human-held props and limitations.}
-The current table is explicitly operator-held; it cannot resolve the compliance
-concern. Our minimum controlled study rigidly mounts the reader and randomizes
-$N{=}20$ trials each for DP-VT, Legacy Full, and the best fixed-Alpha1 variant
-under identical initialization, controller, and timeout. Only one complete
-roller rotation counts as success. We will also report task-specific label
-calibration and target adaptation, and do not claim zero-shot transfer to unseen
-tasks, objects, or viewpoints.
+\newparagraph{Q4: Gating and component ablations.}
+The submitted ablation already showed that removing horizon conditioning or
+masking reduced SWIPE to $2/10$ and $0/10$, whereas removing gating gave $9/10$.
+The new no-gating ($8/20$) and bounded-gate ($7/20$) retrains likewise provide
+no evidence that the tested gate improves binary success; traces indicate that
+it can over-suppress vision. We will therefore demote gating from the core claim
+and report it as an auxiliary, potentially negative ablation.
+
+\newparagraph{Protocol and scope.}
+All new counts in Table~\ref{tab:rebuttal_swipe} are operator-held and cannot
+exclude compliance from the human-held object. We will not pool them with the
+rigid-mount study (DP-VT, Legacy Full, and fixed-loss VPCE-DP, randomized
+$N{=}20$ each), whose results remain \textbf{TBD}. Task-specific thresholds,
+target adaptation, and the base-frame $z$-force proxy are limitations; force
+norms or local-frame multi-axis changes are natural extensions, not current
+evidence. Finally, SWIPE is the strongest result; with $N{=}20$ and overlapping
+intervals, WIPE/INSERT are supportive trends rather than conclusive gains.
 
 \end{document}
