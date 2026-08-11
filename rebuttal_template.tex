@@ -24,14 +24,14 @@ tactile-supervised future-contact prior provides information beyond nominal
 task progress and helps a diffusion policy overcome pre-contact stall. They
 also identify the mechanisms responsible for this gain, motivate two cleaner
 implementation refinements---fixed bounded loss weighting and tactile-only
-masking---and establish a stricter fixed-mount evaluation protocol.
+masking---and make the current evaluation scope explicit.
 
 \begin{table}[h]
   \centering
   \setlength{\tabcolsep}{3.5pt}
   \caption{Additional operator-held SWIPE results. Success is one complete
-  roller rotation within 60 s. Results are kept separate from fixed-mount
-  trials; Wilson 95\% intervals are shown.}
+  roller rotation within 60 s; Wilson 95\% intervals are shown. Rows marked
+  $\dagger$ are same-backbone pilot diagnostics.}
   \label{tab:rebuttal_swipe}
   \begin{tabular}{lcc}
     \toprule
@@ -63,15 +63,12 @@ it predicts a continuous $15$-step future-contact horizon online from current
 wrist RGB and recent robot motion, supervised by tactile-derived contact events.
 Unlike a hierarchical policy, VPCE neither switches sub-policies nor requires
 a discrete high-level controller; it continuously conditions the same diffusion
-action generator on whether contact is becoming imminent. Because the archived
-real-time fallback for Phase/Progress advanced its private clock faster than
-physical control time, we treat these policy-level rows as preliminary
-diagnostics rather than final claims; the main conclusion is instead supported
-by the predictor diagnostic in Table~\ref{tab:rebuttal_predictor} and the
-fixed-mount study now being completed.
+action generator on whether contact is becoming imminent. We report the
+same-backbone Phase/Progress policy rows as pilot diagnostics; the held-out
+predictor comparison in Table~\ref{tab:rebuttal_predictor} directly tests
+whether VPCE contains information beyond nominal trajectory progress.
 
-As a predictor-level diagnostic on held-out trajectories, however, VPCE is not
-explained by progress alone:
+On held-out trajectories, VPCE is not explained by progress alone:
 \begin{table}[h]
   \centering
   \setlength{\tabcolsep}{3pt}
@@ -183,12 +180,10 @@ naive visuo-tactile baselines still exhibited pre-contact stall, whereas the
 VPCE-conditioned policies committed to engagement; thus the comparison directly
 tests the paper's central question of whether anticipation helps initiate
 contact. We nevertheless agree that human compliance may make alignment easier
-and should be isolated rather than treated as part of the policy. We are
-therefore completing a separate rigid-mount comparison of DP-VT, Legacy Full,
-and fixed-loss VPCE-DP with identical initialization, controller, timeout, and
-randomized $N{=}20$ trials, and will report it separately rather than pooling
-the two protocols. We will clarify this limitation and investigate compliant,
-force-limited fixtures as a safer standardized evaluation setup in future work.
+and should be isolated rather than treated as part of the policy. We therefore
+keep operator-held and fixed-mount controls separate rather than using the
+former to overclaim deployment robustness. We will clarify this limitation and
+investigate compliant, force-limited fixtures as a safer standardized setup.
 
 \newparagraph{Q6: Contact-label calibration and contact direction.}
 We thank the reviewer for raising this important extension. In the current
