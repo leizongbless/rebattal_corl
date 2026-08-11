@@ -100,8 +100,11 @@ anticipation and tactile feedback are complementary rather than competing
 representations. The zero-shot results further delineate the current transfer
 boundary: source-teacher AUC/F1 is $.500/.095$ on board and $.662/.666$ on card,
 while target adaptation raises board performance to $.897/.750$. The current
-evidence therefore supports a contact-specific signal beyond progress, with
-target adaptation improving transfer across new visual/contact domains.
+target-domain teacher uses $60$ demonstrations with tactile recordings per downstream
+task; contact targets are generated automatically from the recorded tactile
+signals, without manual frame-level annotation. The current evidence therefore
+supports a contact-specific signal beyond progress, with target adaptation
+improving transfer across new visual/contact domains.
 
 \newparagraph{Q2: Loss-weight optimization.}
 We thank the reviewer for identifying this optimization ambiguity. The original
