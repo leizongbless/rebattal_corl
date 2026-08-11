@@ -26,49 +26,24 @@ also identify the mechanisms responsible for this gain, motivate two cleaner
 implementation refinements---fixed bounded loss weighting and tactile-only
 masking---and make the current evaluation scope explicit.
 
-\begin{table}[h]
-  \centering
-  \setlength{\tabcolsep}{3.5pt}
-  \caption{Additional operator-held SWIPE results. Success is one complete
-  roller rotation within 60 s; Wilson 95\% intervals are shown. Rows marked
-  $\dagger$ are same-backbone pilot diagnostics.}
-  \label{tab:rebuttal_swipe}
-  \begin{tabular}{lcc}
-    \toprule
-    Policy or isolated change & Success/$N$ & 95\% CI \\
-    \midrule
-    Legacy Full & $9/10$ & $[.596,.982]$ \\
-    Phase-DP$^\dagger$ & $12/20$ & $[.387,.781]$ \\
-    Progress-DP$^\dagger$ & $14/20$ & $[.481,.855]$ \\
-    Learned weight $\rightarrow$ fixed $1+c$ & $15/25$ & $[.407,.766]$ \\
-    Whole-lowdim $\rightarrow$ tactile-only mask & $13/20$ & $[.433,.819]$ \\
-    No-gating retrain & $8/20$ & $[.219,.613]$ \\
-    Unbounded $\rightarrow$ bounded gate & $7/20$ & $[.181,.567]$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
 \newparagraph{Q1: Contact anticipation versus task progress.}
 We thank the reviewer for pointing us to Hierarchical Diffusion Policy
-(Wang et al., T-RO 2025) and CompILE (Kipf et al., ICML 2019). These relevant
-works were not cited in the submitted version; we will add them to Related Work
-and clarify that hierarchical phase decomposition and predictive contact
-conditioning provide complementary inductive biases.
-Phase and progress are useful, inexpensive conditions: they encode the nominal
-task order without requiring tactile labels or an additional predictor.
-However, they are time-indexed rather than state-conditioned. The same phase or
-progress value is produced even if execution stalls, contact geometry changes,
-or the object is displaced. VPCE trades this simplicity for physical grounding:
-it predicts a continuous $15$-step future-contact horizon online from current
-wrist RGB and recent robot motion, supervised by tactile-derived contact events.
-Unlike a hierarchical policy, VPCE neither switches sub-policies nor requires
-a discrete high-level controller; it continuously conditions the same diffusion
-action generator on whether contact is becoming imminent. We report the
-same-backbone Phase/Progress policy rows as pilot diagnostics; the held-out
-predictor comparison in Table~\ref{tab:rebuttal_predictor} directly tests
-whether VPCE contains information beyond nominal trajectory progress.
+(Wang et al., T-RO 2025) and CompILE (Kipf et al., ICML 2019); we will add these
+references in the camera-ready version. Phase/progress conditions are useful
+time-indexed descriptions of nominal task order, whereas VPCE is a
+state-conditioned, tactile-supervised $15$-step contact horizon predicted from
+current wrist RGB and recent robot motion. It conditions the same diffusion
+action generator continuously, rather than switching discrete phases or
+sub-policies. On held-out trajectories, VPCE reaches AUC/F1 of
+$.963/.759$, $.885/.705$, and $.946/.735$ on SWIPE/WIPE/INSERT, compared with
+$.853/.597$, $.743/.406$, and $.808/.539$ for the stronger progress-only
+predictor (the phase-only baseline obtains $.670/.000$, $.666/.000$, and
+$.684/.000$). Thus nominal progress explains part of contact timing, but the
+current visual state and motion provide additional contact-specific information.
+We retain the more detailed predictor comparison below and do not claim
+universal zero-shot transfer: target-domain tactile adaptation remains part of
+the current method.
 
-On held-out trajectories, VPCE is not explained by progress alone:
 \begin{table}[h]
   \centering
   \setlength{\tabcolsep}{3pt}
