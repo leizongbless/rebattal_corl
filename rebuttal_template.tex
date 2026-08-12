@@ -20,13 +20,9 @@
 \maketitle
 \thispagestyle{empty}
 
-We thank the 
-Area Chair and all reviewers. We respond below to R1--ZQwd,
-R2--jAyD, and R3--Fcwd. The new evidence directly addresses the requested
-progress baselines, optimization ambiguity, mask scope, component ablations,
-and evaluation protocol. We will revise the paper to narrow the claim to an
-online, tactile-supervised short-horizon contact prior that reduces
-pre-contact stall.
+We thank the Area Chair and reviewers. We address the requested progress
+baselines, loss optimization, mask scope, component ablations, and evaluation
+protocol below.
 
 \newparagraph{[AC, R1, R3] Is VPCE only task progress, and how does it compare
 with phase/hierarchical conditioning?}
@@ -76,33 +72,26 @@ The source VPCE teacher is trained on a source dataset containing 639
   domain.
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
-The original design emphasizes sparse but control-critical contact-transition
-samples relative to abundant free-space samples. However, because $\gamma$ and
-$\delta$ are optimized through the same weighted denoising loss, the model can
-reduce the overall objective by directly lowering the loss weights without
-improving denoising. We inspected checkpoints across tasks and found that this
-behavior is task dependent: at mean contact $\bar c{=}1$, the effective weights
-for policies are approximately $1.005$,
-$2.1$, and $4.4$ on SWIPE, WIPE, and INSERT, respectively. In the SWIPE task, the learned weights almost reach their lower bound, while in the WIPE and INSERT tasks, they do not. This confirms that
-the learned formulation is not well posed. We therefore replace the learned term with the fixed schedule
-  $w(\bar c)=\operatorname{clip}(1+\alpha\bar c,1,1+\alpha)$, where $\alpha$ is a
-  preselected hyperparameter and receives no gradients. We retrained the policies
-  using this schedule with $\alpha=1$; robot evaluations obtain $8/10$ on SWIPE
-  and $7/10$ on WIPE.Thanks to the reviewer.
+The weighting was designed to emphasize sparse, control-critical contact
+transitions. However, optimizing $\gamma$ and $\delta$ through the weighted
+denoising loss lets the model reduce the objective by lowering the weights.
+At $\bar c{=}1$, checkpoint weights are $1.005/2.1/4.4$ on
+SWIPE/WIPE/INSERT, confirming task-dependent behavior. We replace them with
+$w(\bar c)=\operatorname{clip}(1+\alpha\bar c,1,1+\alpha)$, where fixed
+$\alpha$ receives no gradients; retrained-policy experiments validate this
+schedule.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
-Eq.~(9) is intended as contact-conditioned \emph{tactile routing}, not removal of
-robot state. We split the low-dimensional block as
-$f_{\mathrm{low}}=[f_{\mathrm{prop}},f_{\mathrm{tac}}]$ and route it as
-$\widetilde f_{\mathrm{low}}=[f_{\mathrm{prop}},m(\bar c)f_{\mathrm{tac}}]$:
-TCP state and gripper width are always retained, while only tactile/contact
-channels are suppressed when predicted contact is low. Thus free-space control
-still uses wrist RGB, proprioception, the VPCE horizon, action chunks, and
-receding-horizon execution. The submitted SWIPE ablation drops from $9/10$ to
-$0/10$ without contact masking, supporting the importance of the
-contact-conditioned masking pathway; the clarified tactile-only routing obtains
-$13/20$. We will revise Eq.~(9) to state this decomposition explicitly.
+The reviewer is correct that the paper's notation and original post-encoder
+routing conflated proprioception, gripper width, and tactile features. Although
+input-level dropout targeted tactile keys, the post-encoder mask could zero the
+entire low-dimensional tail. We corrected the routing to always retain robot
+state and gripper width and mask only tactile/contact features. This controlled
+variant obtains $13/20$ on SWIPE and produces more coherent free-space approach
+motion. Action-chunk prediction and receding-horizon execution provide additional
+temporal continuity. We will revise Eq.~(9) to distinguish
+$f_{\mathrm{prop}}$ from $f_{\mathrm{tac}}$.
 
 \newparagraph{[AC, R3] Which components matter, and why retain gating?}
   We will move the component ablations from the appendix to the main text. They
@@ -142,7 +131,6 @@ than creating labels only at one tuned value. Contacts with changing normals can
 use $\lVert\Delta\mathbf{F}\rVert_2$, local normal/shear changes, hysteresis,
 or learned change-point labels without changing the VPCE-policy interface.
 
-\newpage
 \newparagraph{[R1, R3] What is the main contribution relative to predictive
 force guidance and tactile representation learning?}
 We will sharpen the claim: the contribution is the identification of
