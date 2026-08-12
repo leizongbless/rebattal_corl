@@ -83,13 +83,12 @@ denoising objective creates a direct incentive to reduce the weight. Checkpoint
 inspection shows weights of only $1.000$--$1.005$; the lower bound prevents
 down-weighting below ordinary DP loss, but makes the learned component largely
 ineffective. We therefore replace it with the fixed schedule
-$w(c)=\operatorname{clip}(1+c,1,2)$. This $\alpha{=}1$ version obtains $8/10$
-on SWIPE and $7/10$ on WIPE, while the submitted no-weighting variant obtains
-$8/10$ on SWIPE. These results show that the fixed schedule removes the
-optimization ambiguity while preserving policy functionality, and that the
-main contact-anticipation gain does not depend on learned loss weighting; we
-will present weighting as a secondary training mechanism rather than an
-independent source of success.
+$w(c)=\operatorname{clip}(1+c,1,2)$, which has no trainable weighting
+parameters and preserves policy functionality in additional robot checks. The
+submitted no-weighting variant already obtains $8/10$ on SWIPE, showing that
+the main contact-anticipation gain does not depend on learned loss weighting.
+We will therefore present the fixed term as a well-posed, secondary training
+mechanism rather than claim that weighting alone improves success.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
