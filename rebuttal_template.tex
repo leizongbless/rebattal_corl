@@ -64,26 +64,32 @@ state-dependent $15$-step contact horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
-We do not claim universal zero-shot transfer. The source teacher gives AUC/F1
-$.500/.095$ on board and $.662/.666$ on card; target adaptation raises board to
-$.897/.750$. The current target teacher uses approximately $60$ demonstrations
-with tactile recordings per task. Tactile signals generate contact labels
-automatically, without manual frame annotation, but collecting target-domain
-tactile demonstrations remains a limitation. We will report these numbers and
-state this transfer boundary explicitly.
+We do not claim universal zero-shot transfer. The source dataset comprises
+$639$ selected OmniViTac trajectories ($545/94$ train/val); its teacher's
+zero-shot AUC/F1 is $.500/.095$ on WIPE and $.662/.666$ on SWIPE. The target
+sets comprise $54/59/61$ tactile trajectories for WIPE/SWIPE/INSERT. The
+deployed WIPE teacher uses BCF joint retraining on all $174$ target trajectories
+($148/26$ train/val), while SWIPE and INSERT use single-task scratch splits of
+$47/12$ and $49/12$. Their held-out AUC/F1 is $.912/.731$, $.960/.774$, and
+$.940/.725$. Tactile signals generate labels without manual frame annotation,
+but target tactile collection and threshold calibration remain limitations. We
+will report source, target, and policy data counts separately.
 
 \newparagraph{[R2] Learned loss weights collapse toward the lower bound.}
-We agree. Optimizing $\gamma$ and $\delta$ through the same weighted denoising
-objective creates a direct incentive to reduce the weight. Checkpoint inspection
-shows weights of only $1.000$--$1.005$; the lower bound prevents down-weighting
-below ordinary DP loss, but the learned component becomes ineffective. We
-therefore replace it with the fixed schedule
+The original intent was to emphasize sparse but control-critical contact
+transitions that can be underrepresented by abundant free-space samples. We
+agree, however, that optimizing $\gamma$ and $\delta$ through the same weighted
+denoising objective creates a direct incentive to reduce the weight. Checkpoint
+inspection shows weights of only $1.000$--$1.005$; the lower bound prevents
+down-weighting below ordinary DP loss, but makes the learned component largely
+ineffective. We therefore replace it with the fixed schedule
 $w(c)=\operatorname{clip}(1+c,1,2)$. This $\alpha{=}1$ version obtains $8/10$
-on SWIPE and $7/10$ on WIPE. Together with the submitted no-weighting result
-($8/10$ on SWIPE), this shows that the main contact-anticipation result does not
-depend on the problematic learned weight. We will present the fixed results as
-small-$N$ functionality checks, not as a claim that weighting alone improves
-success.
+on SWIPE and $7/10$ on WIPE, while the submitted no-weighting variant obtains
+$8/10$ on SWIPE. These results show that the fixed schedule removes the
+optimization ambiguity while preserving policy functionality, and that the
+main contact-anticipation gain does not depend on learned loss weighting; we
+will present weighting as a secondary training mechanism rather than an
+independent source of success.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
@@ -98,17 +104,15 @@ temporal continuity. We will revise Eq.~(9) to distinguish
 $f_{\mathrm{prop}}$ from $f_{\mathrm{tac}}$.
 
 \newparagraph{[AC, R3] Which components matter, and why retain gating?}
-We agree that the main-text ablation was insufficient. The submitted SWIPE pilot
-gives: full $9/10$, no horizon $2/10$, horizon only $0/10$, no gating $9/10$,
-no loss weighting $8/10$, and no masking $0/10$. Therefore, the evidence does
-\emph{not} support gating as necessary. Horizon conditioning and contact-adaptive
-masking are the main mechanisms; loss weighting is secondary, and gating is an
-optional/task-dependent modulation. To answer R2's visualization request,
-checkpoint probing shows the mean visual gate decreasing from $.935$ to $.313$
-and the low-dimensional gate increasing from $.937$ to $2.874$ as mean contact
-probability moves from $0$ to $1$. We will include this trace as diagnostic
-evidence, move the ablation table into the main text, and revise the method and
-contribution statements accordingly.
+We thank the Area Chair and R3 and will move the compact component ablation from
+the appendix into the main text. The submitted SWIPE results are full $9/10$,
+no horizon $2/10$, horizon only $0/10$, no tactile masking $0/10$, no gating
+$9/10$, and no loss weighting $8/10$. These results identify future-contact
+horizon conditioning and contact-adaptive tactile masking as the core success
+mechanisms, with loss weighting serving as secondary training emphasis. Because
+removing gating does not reduce binary success, we will downgrade it from a
+central contribution to an auxiliary, task-dependent modulation and retain its
+feature-weight trace only as diagnostic evidence.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
 The reader and foam were held only to maintain a predefined height and
