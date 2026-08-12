@@ -97,20 +97,13 @@ DP loss. We retain the original emphasis intuition while removing this
 ambiguity with the fixed bounded schedule
 $w(c)=\operatorname{clip}(1+c,1,2)$, which smoothly maps free-space samples to
 weight $1$ and high-contact-probability samples to at most $2$, without a
-learned collapse direction. The updated $15/25$ result confirms that this
-well-posed refinement preserves real-robot functionality. We further evaluated
-the fixed family
-$w_{\alpha}(c)=\operatorname{clip}(1+\alpha c,1,1+\alpha)$ in a matched SWIPE
-sweep with $10$ real-robot rollouts per value. Success was $10/10$ for
-$\alpha{=}1$, compared with $7/10$, $6/10$, and $3/10$ for
-$\alpha{=}0.5$, $0.25$, and $2$, respectively. Thus moderate contact emphasis
-works best in this setting: weaker schedules provide less rebalancing, whereas
-$\alpha{=}2$ over-emphasizes contact-imminent samples. We select $\alpha{=}1$
-and will report this sensitivity study in the revision. Together with the
-submitted no-loss-weighting result ($8/10$), these experiments show that the
-central contact-anticipation effect does not depend on the original learned
-weighting term, while the fixed schedule retains the intended emphasis on
-contact-critical samples without an optimization shortcut.
+learned collapse direction. With $\alpha{=}1$, this fixed schedule obtains
+$8/10$ on SWIPE and $7/10$ on WIPE. We treat these small-$N$ evaluations as a
+functionality check rather than evidence that loss weighting alone improves
+success. Together with the submitted no-loss-weighting result ($8/10$ on
+SWIPE), they show that the central contact-anticipation effect does not depend
+on the original learned weighting term, while the fixed schedule retains the
+intended emphasis on contact-critical samples without an optimization shortcut.
 
 \newparagraph{Q3: Masking and free-space motion.}
 We thank the reviewer for highlighting that Eq.~(9) conflated distinct
@@ -144,21 +137,27 @@ revision, and retain the full behavioral analysis in the appendix.
 
 \newparagraph{Q5: Operator-held evaluation protocol.}
 We thank the reviewer for highlighting that the supplementary video did not
-make this protocol and its rationale sufficiently clear. Holding the reader and
-foam was an intentional safety measure: mechanical compliance reduces the risk
-of damaging the fingertip tactile sensors, task props, or robot during failed
-high-force contacts. The same held-object protocol, success criterion, and
-$60$-s timeout were applied across methods. We increased the number of trials
-and report success counts with Wilson intervals to reduce and expose the
-remaining sampling uncertainty. Under this shared protocol, the visual and
-naive visuo-tactile baselines still exhibited pre-contact stall, whereas the
-VPCE-conditioned policies committed to engagement; thus the comparison directly
-tests the paper's central question of whether anticipation helps initiate
-contact. We nevertheless agree that human compliance may make alignment easier
-and should be isolated rather than treated as part of the policy. We therefore
-keep operator-held and fixed-mount controls separate rather than using the
-former to overclaim deployment robustness. We will clarify this limitation and
-investigate compliant, force-limited fixtures as a safer standardized setup.
+make this protocol and its rationale sufficiently clear. The reader and foam
+were held only to maintain a predefined height and orientation in the robot's
+reachable workspace; the holder did not track the end effector, adjust the
+object online, or assist alignment after a rollout began. The same initial
+placement, success criterion, and $60$-s timeout were used across methods. We
+expanded the original VPCE-DP evaluation to $30$ trials per task, obtaining
+$28/30$ on SWIPE ($93.3\%$, Wilson $95\%$ CI $[78.7,98.2]\%$), $22/30$ on WIPE
+($73.3\%$, $[55.6,85.8]\%$), and $18/30$ on INSERT ($60.0\%$,
+$[42.3,75.4]\%$). These additional rollouts are consistent with the submitted
+results and reduce sampling uncertainty.
+
+The standardized height also exposes an important scope condition. VPCE predicts
+only a $15$-step future-contact horizon aligned with the policy horizon; it is
+not a long-range approach planner. If the interaction object begins far outside
+this anticipation range, predicted contact probability can remain low and the
+policy may still stall before reaching the pre-contact region. We agree that
+operator compliance may ease contact and will state this limitation explicitly.
+A natural extension is an external-view camera or coarse approach controller
+that first brings the end effector near the interaction region, after which the
+wrist-based VPCE regulates imminent contact. We will also investigate a
+height-matched rigid or force-limited fixture for standardized evaluation.
 
 \newparagraph{Q6: Contact-label calibration and contact direction.}
 We thank the reviewer for raising this important extension. In the current
@@ -186,7 +185,8 @@ Target adaptation defines the current transfer boundary. The three tasks provide
 complementary evidence across precise engagement, sustained surface contact,
 and insertion. SWIPE shows the largest gain, while WIPE and INSERT test whether
 the same prior remains useful when post-contact regulation becomes increasingly
-important. We report Wilson intervals and avoid extrapolating beyond the
-evaluated task set.
+important. The current $15$-step predictor addresses short-horizon contact
+anticipation, not arbitrary long-range approach. We report Wilson intervals and
+avoid extrapolating beyond the evaluated task set.
 
 \end{document}
