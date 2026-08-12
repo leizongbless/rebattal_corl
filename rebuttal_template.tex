@@ -68,9 +68,7 @@ data is required?}
 We do not claim universal zero-shot transfer. For downstream deployment, we
 train target-domain teachers using approximately $60$ tactile demonstrations
 per task. The target teachers obtain held-out AUC/F1 $.912/.731$, $.960/.774$,
-and $.940/.725$ on WIPE/SWIPE/INSERT. Tactile signals generate labels without
-manual frame annotation, but target tactile collection and threshold
-calibration remain limitations.
+and $.940/.725$ on WIPE/SWIPE/INSERT.
 
 \newparagraph{[R2] Learned loss weights collapse toward the lower bound.}
 The original intent was to emphasize sparse but control-critical contact
@@ -136,13 +134,12 @@ contact before touch is informative and to permit tactile-free deployment;
 tactile is used as privileged training supervision. In the full policy, tactile
 feedback remains available after contact. For the current planar tasks, contact
 labels use the temporal change of a base-frame $z$-force proxy. A threshold of
-$0.095$ is reused for most tasks; where sensor scale differs, it is selected
-once from the training force-change distribution and then fixed. We acknowledge
-this calibration requirement. A $0.6\!\times$--$1.4\!\times$ threshold sweep
+$0.095$ is used for the source, SWIPE, and INSERT data; WIPE uses $0.0507$ due
+to its different sensor scale. Each threshold is selected once from the
+training force-change distribution and then fixed. A $0.6\!\times$--$1.4\!\times$ threshold sweep
 changes the $15$-step positive-label rate smoothly (SWIPE $.296\!\rightarrow
 .217$, WIPE $.582\!\rightarrow.379$, INSERT $.390\!\rightarrow.290$), rather
-than creating labels only at one tuned value; this is label sensitivity, not yet
-a policy-success robustness claim. Contacts with changing normals can instead
+than creating labels only at one tuned value. Contacts with changing normals can instead
 use $\lVert\Delta\mathbf{F}\rVert_2$, local normal/shear changes, hysteresis,
 or learned change-point labels without changing the VPCE-policy interface.
 
