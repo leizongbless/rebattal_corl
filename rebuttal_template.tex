@@ -18,31 +18,22 @@
 \maketitle
 \thispagestyle{empty}
 
-We thank the reviewers and Area Chair for their constructive questions. The
-additional analyses strengthen the paper's central conclusion that an online,
-tactile-supervised future-contact prior provides information beyond nominal
-task progress and helps a diffusion policy overcome pre-contact stall. They
-also identify the mechanisms responsible for this gain, motivate two cleaner
-implementation refinements---fixed bounded loss weighting and tactile-only
-masking---and make the current evaluation scope explicit.
+We thank the Area Chair and reviewers. We respond below to R1--ZQwd,
+R2--jAyD, and R3--Fcwd. The new evidence directly addresses the requested
+progress baselines, optimization ambiguity, mask scope, component ablations,
+and evaluation protocol. We will revise the paper to narrow the claim to an
+online, tactile-supervised short-horizon contact prior that reduces
+pre-contact stall.
 
-\newparagraph{Q1: Contact anticipation versus task progress.}
-We thank the reviewer for pointing us to Hierarchical Diffusion Policy
-(Wang et al., T-RO 2025) and CompILE (Kipf et al., ICML 2019); we will add these
-references in the camera-ready version. Phase/progress conditions are useful
-time-indexed descriptions of nominal task order, whereas VPCE is a
-state-conditioned, tactile-supervised $15$-step contact horizon predicted from
-current wrist RGB and recent robot motion. It conditions the same diffusion
-action generator continuously, rather than switching discrete phases or
-sub-policies. On held-out trajectories, VPCE reaches AUC/F1 of
-$.963/.759$, $.885/.705$, and $.946/.735$ on SWIPE/WIPE/INSERT, compared with
-$.853/.597$, $.743/.406$, and $.808/.539$ for the stronger progress-only
-predictor (the phase-only baseline obtains $.670/.000$, $.666/.000$, and
-$.684/.000$). Thus nominal progress explains part of contact timing, but the
-current visual state and motion provide additional contact-specific information.
-We retain the more detailed predictor comparison below and do not claim
-universal zero-shot transfer: target-domain tactile adaptation remains part of
-the current method.
+\newparagraph{[AC, R1, R3] Is VPCE only task progress, and how does it compare
+with phase/hierarchical conditioning?}
+We agree that this comparison is necessary. We added phase-4 and normalized
+progress-20 predictors on the same held-out trajectories. VPCE obtains AUC/F1
+of $.963/.759$, $.885/.705$, and $.946/.735$ on SWIPE/WIPE/INSERT, versus
+$.853/.597$, $.743/.406$, and $.808/.539$ for progress and $.670/.000$,
+$.666/.000$, and $.684/.000$ for phase. Thus trajectory time explains part of
+contact timing, but current wrist RGB and robot motion contain additional
+contact-specific information.
 
 \begin{table}[h]
   \centering
@@ -59,134 +50,109 @@ the current method.
     \bottomrule
   \end{tabular}
 \end{table}
-Progress captures some timing, but vision, motion, and tactile-derived contact
-supervision add information beyond normalized trajectory time. This distinction
-also explains the synergy with tactile feedback. VPCE supplies information
-before touch becomes informative---\emph{when} to commit to contact---whereas
-tactile observations regulate \emph{how} to execute after contact. The submitted
-$2\!\times\!2$ comparison separates these roles: on SWIPE, the contact-prior-only
-policy reaches $85\%$ versus $10\%$ for tactile-only DP, and the full method
-reaches $90\%$; on WIPE/INSERT, the full method reaches $70/45\%$, compared with
-$50/30\%$ for prior-only and $60/15\%$ for tactile-only policies. Thus contact
-anticipation and tactile feedback are complementary rather than competing
-representations. The zero-shot results further delineate the current transfer
-boundary: source-teacher AUC/F1 is $.500/.095$ on board and $.662/.666$ on card,
-while target adaptation raises board performance to $.897/.750$. The current
-target-domain teacher uses $60$ demonstrations with tactile recordings per downstream
-task; contact targets are generated automatically from the recorded tactile
-signals, without manual frame-level annotation. The current evidence therefore
-supports a contact-specific signal beyond progress, with target adaptation
-improving transfer across new visual/contact domains.
+This is a predictor-level comparison, not a full reproduction of every
+hierarchical policy. We will add Hierarchical Diffusion Policy and CompILE,
+include these controlled baselines, and avoid claiming superiority over all
+hierarchical methods. Unlike a discrete phase switch, VPCE continuously
+conditions the same action generator with an online, state-dependent $15$-step
+contact horizon.
 
-\newparagraph{Q2: Loss-weight optimization.}
-We thank the reviewer for identifying this optimization ambiguity. The original
-design intuition was to emphasize sparse but control-critical
-approach-to-contact transitions. With uniform denoising loss, abundant and
-relatively easy free-space samples can dominate optimization, even though small
-action errors near contact determine whether engagement succeeds. We therefore
-used the VPCE mean probability $c$ to increase the gradient contribution of
-contact-imminent samples. The learnable $\gamma$ was intended to adapt the
-global strength of this emphasis across tasks, while the residual $\delta$ was
-intended to compensate for the fact that contact probability and action
-difficulty are not identical; $\operatorname{softplus}(\gamma)$ kept the base
-gain non-negative. We agree, however, that optimizing these parameters through
-the same weighted objective creates a downward incentive. Checkpoint inspection
-confirms that the resulting weight is approximately $1.000$--$1.005$: the lower
-bound prevents harmful down-weighting, but largely reduces the term to ordinary
-DP loss. We retain the original emphasis intuition while removing this
-ambiguity with the fixed bounded schedule
-$w(c)=\operatorname{clip}(1+c,1,2)$, which smoothly maps free-space samples to
-weight $1$ and high-contact-probability samples to at most $2$, without a
-learned collapse direction. With $\alpha{=}1$, this fixed schedule obtains
-$8/10$ on SWIPE and $7/10$ on WIPE. We treat these small-$N$ evaluations as a
-functionality check rather than evidence that loss weighting alone improves
-success. Together with the submitted no-loss-weighting result ($8/10$ on
-SWIPE), they show that the central contact-anticipation effect does not depend
-on the original learned weighting term, while the fixed schedule retains the
-intended emphasis on contact-critical samples without an optimization shortcut.
+\newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
+data is required?}
+We do not claim universal zero-shot transfer. The source teacher gives AUC/F1
+$.500/.095$ on board and $.662/.666$ on card; target adaptation raises board to
+$.897/.750$. The current target teacher uses approximately $60$ demonstrations
+with tactile recordings per task. Tactile signals generate contact labels
+automatically, without manual frame annotation, but collecting target-domain
+tactile demonstrations remains a limitation. We will report these numbers and
+state this transfer boundary explicitly.
 
-\newparagraph{Q3: Masking and free-space motion.}
-We thank the reviewer for highlighting that Eq.~(9) conflated distinct
-low-dimensional signals. The original post-encoder block included
-proprioception, gripper width, and tactile features, although the intended
-inductive bias was only to suppress uninformative pre-contact touch. We therefore
-ran a controlled mask-scope retraining that changes only this routing: the
-revision always retains proprioception and gripper width and masks only
-tactile/contact features. It obtains $13/20$ on SWIPE. Qualitatively, preserving
-proprioception produces more coherent free-space approach motion and avoids the
-endpoint-seeking/repositioning behavior observed with the whole-lowdim mask,
-while contact-adaptive tactile masking still suppresses pre-contact sensor
-variation. Action-chunk prediction and receding-horizon execution provide
-additional temporal coherence. This result supports masking as tactile routing,
-rather than as suppression of robot state.
+\newparagraph{[R2] Learned loss weights collapse toward the lower bound.}
+We agree. Optimizing $\gamma$ and $\delta$ through the same weighted denoising
+objective creates a direct incentive to reduce the weight. Checkpoint inspection
+shows weights of only $1.000$--$1.005$; the lower bound prevents down-weighting
+below ordinary DP loss, but the learned component becomes ineffective. We
+therefore replace it with the fixed schedule
+$w(c)=\operatorname{clip}(1+c,1,2)$. This $\alpha{=}1$ version obtains $8/10$
+on SWIPE and $7/10$ on WIPE. Together with the submitted no-weighting result
+($8/10$ on SWIPE), this shows that the main contact-anticipation result does not
+depend on the problematic learned weight. We will present the fixed results as
+small-$N$ functionality checks, not as a claim that weighting alone improves
+success.
 
-\newparagraph{Q4: Gating and component ablations.}
-We thank the Area Chair and Reviewer Fcwd for emphasizing that the component
-ablations should be visible in the main paper rather than only in the appendix;
-this will make the evidence for each design choice easier to assess.
-The submitted ablation showed that removing horizon conditioning or masking
-reduced SWIPE to $2/10$ and $0/10$, whereas removing gating gave $9/10$ and
-removing loss weighting gave $8/10$. Together with the new no-gating ($8/20$)
-and bounded-gate ($7/20$) retrains, these experiments identify a clear division
-of labor: future-contact horizon conditioning and contact-adaptive masking are
-the main drivers of task success; loss weighting is a secondary training
-emphasis; and gating is an auxiliary, task-dependent modulation rather than a
-required source of the contact-anticipation gain. We will move the compact
-component-ablation table and this interpretation into the main text in the
-revision, and retain the full behavioral analysis in the appendix.
+\newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
+motion smooth?}
+The reviewer is correct that the paper's notation and original post-encoder
+routing conflated proprioception, gripper width, and tactile features. Although
+input-level dropout targeted tactile keys, the post-encoder mask could zero the
+entire low-dimensional tail. We corrected the routing to always retain robot
+state and gripper width and mask only tactile/contact features. This controlled
+variant obtains $13/20$ on SWIPE and produces more coherent free-space approach
+motion. Action-chunk prediction and receding-horizon execution provide additional
+temporal continuity. We will revise Eq.~(9) to distinguish
+$f_{\mathrm{prop}}$ from $f_{\mathrm{tac}}$.
 
-\newparagraph{Q5: Operator-held evaluation protocol.}
-We thank the reviewer for highlighting that the supplementary video did not
-make this protocol and its rationale sufficiently clear. The reader and foam
-were held only to maintain a predefined height and orientation in the robot's
-reachable workspace; the holder did not track the end effector, adjust the
-object online, or assist alignment after a rollout began. The same initial
-placement, success criterion, and $60$-s timeout were used across methods. We
-expanded the original VPCE-DP evaluation to $30$ trials per task, obtaining
-$28/30$ on SWIPE ($93.3\%$, Wilson $95\%$ CI $[78.7,98.2]\%$), $22/30$ on WIPE
-($73.3\%$, $[55.6,85.8]\%$), and $18/30$ on INSERT ($60.0\%$,
-$[42.3,75.4]\%$). These additional rollouts are consistent with the submitted
-results and reduce sampling uncertainty.
+\newparagraph{[AC, R3] Which components matter, and why retain gating?}
+We agree that the main-text ablation was insufficient. The submitted SWIPE pilot
+gives: full $9/10$, no horizon $2/10$, horizon only $0/10$, no gating $9/10$,
+no loss weighting $8/10$, and no masking $0/10$. Therefore, the evidence does
+\emph{not} support gating as necessary. Horizon conditioning and contact-adaptive
+masking are the main mechanisms; loss weighting is secondary, and gating is an
+optional/task-dependent modulation. To answer R2's visualization request,
+checkpoint probing shows the mean visual gate decreasing from $.935$ to $.313$
+and the low-dimensional gate increasing from $.937$ to $2.874$ as mean contact
+probability moves from $0$ to $1$. We will include this trace as diagnostic
+evidence, move the ablation table into the main text, and revise the method and
+contribution statements accordingly.
 
-The standardized height also exposes an important scope condition. VPCE predicts
-only a $15$-step future-contact horizon aligned with the policy horizon; it is
-not a long-range approach planner. If the interaction object begins far outside
-this anticipation range, predicted contact probability can remain low and the
-policy may still stall before reaching the pre-contact region. We agree that
-operator compliance may ease contact and will state this limitation explicitly.
-A natural extension is an external-view camera or coarse approach controller
-that first brings the end effector near the interaction region, after which the
-wrist-based VPCE regulates imminent contact. We will also investigate a
-height-matched rigid or force-limited fixture for standardized evaluation.
+\newparagraph{[R2] Could operator-held props assist the policy?}
+The reader and foam were held only to maintain a predefined height and
+orientation in the reachable workspace; the holder did not track the end
+effector, adjust the object online, or assist alignment after rollout start.
+All methods used the same placement, success criterion, and $60$-s timeout. We
+expanded the original VPCE-DP evaluation to $30$ trials per task: SWIPE
+$28/30$ ($93.3\%$, Wilson $95\%$ CI $[78.7,98.2]\%$), WIPE $22/30$
+($73.3\%$, $[55.6,85.8]\%$), and INSERT $18/30$ ($60.0\%$,
+$[42.3,75.4]\%$). These results are consistent with the submission, but we
+agree that operator compliance remains a confound and will not use this protocol
+to claim fixed-environment robustness.
 
-\newparagraph{Q6: Contact-label calibration and contact direction.}
-We thank the reviewer for raising this important extension. In the current
-setup, two planar fingertip tactile sensors and the gripper/task geometry yield
-a repeatable dominant interaction direction. We therefore derive the binary
-contact event from the temporal change of a base-frame $z$-force proxy; the
-same threshold of $0.095$ is reused for most tasks. For the few domains with a
-different sensor scale, the threshold is selected once from the
-training-demonstration force-change distribution and then held fixed. All frame
-labels are generated automatically from the tactile stream; no manual
-frame-level contact annotation is required. This is sufficient for the present
-tasks because VPCE predicts whether contact is imminent, rather than regressing
-the full contact wrench. We agree that dexterous hands, curved tactile surfaces, and
-contacts with changing normals require direction-agnostic or local-frame labels.
-A direct extension is to threshold the resultant change
-$\lVert\Delta\mathbf{F}\rVert_2$, or combine local normal and shear changes with
-hysteresis or learned change-point detection. Importantly, this replaces only
-the tactile-to-contact label adapter: the VPCE predictor, future-contact horizon,
-and policy-conditioning framework remain unchanged. We will add a threshold
-sensitivity analysis and investigate calibration-light multi-axis labeling in
-the revision and future work.
+The height constraint also clarifies the method's scope: VPCE predicts only
+$15$ future steps and is not a long-range approach planner. Starting far outside
+this horizon can leave contact probability low and reintroduce stalling. We
+will add this limitation and investigate a height-matched rigid fixture plus an
+external-view camera or coarse approach controller that first reaches the
+interaction region before wrist-based VPCE regulates imminent contact.
 
-\newparagraph{Scope.}
-Target adaptation defines the current transfer boundary. The three tasks provide
-complementary evidence across precise engagement, sustained surface contact,
-and insertion. SWIPE shows the largest gain, while WIPE and INSERT test whether
-the same prior remains useful when post-contact regulation becomes increasingly
-important. The current $15$-step predictor addresses short-horizon contact
-anticipation, not arbitrary long-range approach. We report Wilson intervals and
-avoid extrapolating beyond the evaluated task set.
+\newparagraph{[R2, R3] Why exclude tactile input from VPCE, and how are labels
+and contact directions handled?}
+VPCE intentionally excludes tactile input because its role is to anticipate
+contact before touch is informative and to permit tactile-free deployment;
+tactile is used as privileged training supervision. In the full policy, tactile
+feedback remains available after contact. For the current planar tasks, contact
+labels use the temporal change of a base-frame $z$-force proxy. A threshold of
+$0.095$ is reused for most tasks; where sensor scale differs, it is selected
+once from the training force-change distribution and then fixed. We acknowledge
+this calibration requirement. A $0.6\!\times$--$1.4\!\times$ threshold sweep
+changes the $15$-step positive-label rate smoothly (SWIPE $.296\!\rightarrow
+.217$, WIPE $.582\!\rightarrow.379$, INSERT $.390\!\rightarrow.290$), rather
+than creating labels only at one tuned value; this is label sensitivity, not yet
+a policy-success robustness claim. Contacts with changing normals can instead
+use $\lVert\Delta\mathbf{F}\rVert_2$, local normal/shear changes, hysteresis,
+or learned change-point labels without changing the VPCE-policy interface.
+
+\newpage
+\newparagraph{[R1, R3] What is the main contribution relative to predictive
+force guidance and tactile representation learning?}
+We will sharpen the claim: the contribution is the identification of
+pre-contact stall, tactile-supervised distillation of a compact future-contact
+horizon into visual-proprioceptive inputs, and evidence that this signal can
+initiate contact even without tactile sensing at deployment. The individual
+gates and loss weights are not claimed as the primary novelty. Unstructured
+tactile encoders such as Sparsh are complementary for representing post-contact
+feedback; comparing them does not replace the question addressed here---how to
+act before tactile observations become informative. We will expand related work
+and state the missing Sparsh/full hierarchical policy comparisons as evaluation
+limitations.
 
 \end{document}
