@@ -57,32 +57,30 @@ contact-specific information.
   \vspace{-6pt}
 \end{wraptable}
 \noindent\textbf{Policy-level SWIPE:} Phase-DP, Progress-DP, and VPCE-DP
-achieve $12/20$, $14/20$, and $28/30$. Thus VPCE's online, state-dependent
-$15$-step horizon also improves execution within the same DP family. We will
-discuss Hierarchical DP and CompILE without claiming superiority over all
-hierarchical methods.
+achieve $12/20$, $14/20$, and $28/30$. Thus, VPCE improves execution by
+predicting future contact states online with a state-dependent $15$-step
+horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
-We do not claim universal zero-shot transfer. For downstream deployment, we
-train target-domain teachers using approximately $60$ tactile demonstrations
-per task. The target teachers obtain held-out AUC/F1 $.912/.731$, $.960/.774$,
-and $.940/.725$ on WIPE/SWIPE/INSERT.
+We use the downstream WIPE/SWIPE/INSERT tactile datasets, approximately $60$
+trajectories per task, and split them by complete trajectory with no overlapping
+frames. SWIPE and INSERT use $47/12$ and $49/12$ train/held-out trajectories;
+WIPE uses a joint three-task teacher trained/evaluated on $148/26$ trajectories
+(WIPE: $46/8$). Thus every evaluation trajectory---including its complete RGB,
+motion, and contact sequence---is unseen during training. The adapted teachers
+obtain AUC/F1 $.912/.731$, $.960/.774$, and $.940/.725$ on unseen
+WIPE/SWIPE/INSERT trajectories, demonstrating target-domain transfer beyond the
+training demonstrations.
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
 We thank R2 for identifying this optimization ambiguity. Because $\gamma$ and
 $\delta$ are optimized through the same weighted denoising loss, reducing the
-weight can directly reduce the objective. A cross-task checkpoint audit shows
-that this behavior is not uniform: at $\bar c{=}1$, the effective weights are
-approximately $1.005/2.1/4.4$ on SWIPE/WIPE/INSERT in both V and VT policies.
-Thus SWIPE nearly reaches the lower bound, whereas WIPE and INSERT do not; the
-strong task dependence nevertheless shows that the learned scale is not a
-stable or interpretable mechanism. We replace it with the fixed schedule
-$w(c)=\operatorname{clip}(1+c,1,2)$. Fixed-$\alpha{=}1$ robot checks obtain
-$8/10$ on SWIPE and $7/10$ on WIPE, while the submitted no-weighting variant
-already obtains $8/10$ on SWIPE. The main contact-anticipation result therefore
-does not depend on learned weighting; we will present fixed weighting only as a
-secondary training mechanism.
+weight can directly reduce the objective without improving denoising. We agree
+that the learned formulation is therefore ill posed and replace it with the
+fixed schedule $w(c)=\operatorname{clip}(1+c,1,2)$, removing trainable weighting
+parameters. The submitted no-weighting variant obtains $8/10$ on SWIPE, so the
+main contact-anticipation result does not depend on learned weighting.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
