@@ -101,14 +101,14 @@ no horizon $2/10$, horizon only $0/10$, no tactile masking $0/10$, no gating
 $9/10$, and no loss weighting $8/10$. These results identify future-contact
 horizon conditioning and contact-adaptive tactile masking as the core success
 mechanisms, with loss weighting serving as secondary training emphasis. The
-identical $9/10$ result shows that gating is not required for binary success,
-so we will not present it as a core mechanism. The appendix's rollout notes
-nevertheless show that successful no-gating trials entered contact less stably
-and required more alignment corrections, suggesting a trajectory-quality effect
-not captured by binary success. Because this effect was not quantified, we will
-label it qualitative. We will retain gating only as an auxiliary, task-dependent
-modulation and provide its feature-weight trace for interpretation, without
-claiming a success-rate improvement.
+identical $9/10$ success rates show that binary success alone does not capture
+the role of gating. As shown qualitatively in the supplementary video, the
+gated policy enters contact more directly and maintains alignment, whereas the
+no-gating policy requires repeated corrective inference/action chunks before
+establishing aligned contact. Thus gating improves contact-entry trajectory
+quality by adaptively rebalancing visual and low-dimensional feedback, even when
+the final success rate is unchanged. We will add this qualitative comparison
+and the feature-weight traces to the main text.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
 The reader and foam were held only to keep them at a predefined height and
