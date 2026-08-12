@@ -21,7 +21,7 @@
 \thispagestyle{empty}
 
 We thank the 
-Area Chair and reviewers. We respond below to R1--ZQwd,
+Area Chair and all reviewers. We respond below to R1--ZQwd,
 R2--jAyD, and R3--Fcwd. The new evidence directly addresses the requested
 progress baselines, optimization ambiguity, mask scope, component ablations,
 and evaluation protocol. We will revise the paper to narrow the claim to an
@@ -63,14 +63,17 @@ horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
-The source VPCE teacher is trained on the
-source dataset contains $639$ (545/94) complete tactile trajectories.
-For downstream target-domain training, we use 60 tactile trajectories each for
-WIPE/SWIPE/INSERT, respectively. On trajectory-disjoint held-out data, the
-target-domain teachers obtain AUC/F1 $.912/.731$, $.960/.774$, and $.940/.725$.
-Thus the source teacher covers diverse contact regimes, while approximately
-$60$ target trajectories suffice to generalize to unseen trajectories in each
-downstream domain.
+The source VPCE teacher is trained on a source dataset containing 639
+  tactile trajectories (545 train / 94 held-out).
+  For downstream target-domain training, we use 60 tactile trajectories each
+  for
+  WIPE/SWIPE/INSERT, respectively. On trajectory-disjoint held-out data, the
+  target-domain teachers obtain AUC/F1 $.912/.731$, $.960/.774$, and
+  $.940/.725$.
+  Thus the source teacher covers diverse contact regimes, while $60$ target
+  trajectories suffice to generalize to unseen trajectories in each
+  downstream
+  domain.
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
 The original design emphasizes sparse but control-critical contact-transition
@@ -79,12 +82,13 @@ $\delta$ are optimized through the same weighted denoising loss, the model can
 reduce the overall objective by directly lowering the loss weights without
 improving denoising. We inspected checkpoints across tasks and found that this
 behavior is task dependent: at mean contact $\bar c{=}1$, the effective weights
-for both visual (V) and visuo-tactile (VT) policies are approximately $1.005$,
-$2.1$, and $4.4$ on SWIPE, WIPE, and INSERT, respectively. This confirms that
-the learned formulation is not well posed. We therefore replace the learned
-term with the fixed schedule
-$w(\bar c)=\operatorname{clip}(1+\alpha\bar c,1,1+\alpha)$, where $\alpha$ is a
-preselected hyperparameter and receives no gradients.
+for policies are approximately $1.005$,
+$2.1$, and $4.4$ on SWIPE, WIPE, and INSERT, respectively. In the SWIPE task, the learned weights almost reach their lower bound, while in the WIPE and INSERT tasks, they do not. This confirms that
+the learned formulation is not well posed. We therefore replace the learned term with the fixed schedule
+  $w(\bar c)=\operatorname{clip}(1+\alpha\bar c,1,1+\alpha)$, where $\alpha$ is a
+  preselected hyperparameter and receives no gradients. We retrained the policies
+  using this schedule with $\alpha=1$; robot evaluations obtain $8/10$ on SWIPE
+  and $7/10$ on WIPE.Thanks to the reviewer.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
@@ -100,30 +104,27 @@ $0/10$ without contact masking, supporting the importance of the
 contact-conditioned masking pathway; the clarified tactile-only routing obtains
 $13/20$. We will revise Eq.~(9) to state this decomposition explicitly.
 
-\newparagraph{[AC, R3] Why retain gating if success is unchanged?}
-Although gating does not increase the final binary success rate, that metric
-does not capture trajectory quality. As shown qualitatively in the supplementary
-video, the gated policy enters contact more directly and maintains alignment,
-whereas the no-gating policy requires more corrective inference/action chunks
-before establishing aligned contact. Thus gating improves contact-entry
-trajectory quality by adaptively rebalancing visual and low-dimensional
-feedback. We will add this qualitative comparison and the feature-weight traces
-to the main text.
+\newparagraph{[AC, R3] Which components matter, and why retain gating?}
+  We will move the component ablations from the appendix to the main text. They
+  show that horizon conditioning and contact-adaptive tactile masking are critical
+  to success. Although gating does not improve binary success, the supplementary
+  video shows that it enables more direct and stable contact alignment, whereas
+  the no-gating policy requires more corrective inference and actions. Thus,
+  gating improves trajectory quality by adaptively balancing visual and
+  low-dimensional feedback.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
 After rollout start, the holder did not track the end effector, reposition
-  the object, or assist alignment; all methods used the same initial
-  placement, success criterion, and 60-s timeout. Importantly, this shared
-  protocol did not substantially improve the non-VPCE baselines on SWIPE:
-  DP-V and DP-VT achieved only $1/20$ and $2/20$ success, whereas
-  VPCE-DP-V and VPCE-DP achieved $17/20$ and $18/20$. Thus, the
-  reachable held setup alone does not explain the performance gap; with the
-  predicted contact horizon, the policy more reliably commits through the
-  final approach into contact and manipulation, directly addressing the
-  pre-contact stall targeted by this work. To reduce sampling uncertainty
-  and operator-held variance under the same protocol, we further expanded
-  VPCE-DP to $30$ trials per task, obtaining $28/30$ on SWIPE ($93.3\%$),
-  $22/30$ on WIPE ($73.3\%$), and $18/30$ on INSERT ($60.0\%$).
+  the object, or assist alignment; all methods used the same placement,
+  success criterion, and 60-s timeout. This shared protocol did not rescue
+  non-VPCE baselines on SWIPE: DP-V and DP-VT achieved $1/20$ and $2/20$,
+  whereas VPCE-DP-V and VPCE-DP achieved $17/20$ and $18/20$. Thus, the held
+  setup alone does not explain the gap; the predicted contact horizon helps
+  the
+  policy commit through final approach and contact. To reduce sampling
+  uncertainty, we expanded VPCE-DP to $30$ trials/task, obtaining $28/30$ on
+  SWIPE ($93.3\%$), $22/30$ on WIPE ($73.3\%$), and $18/30$ on INSERT
+  ($60.0\%$).
 
 \newparagraph{[R2, R3] Why exclude tactile input from VPCE, and how are labels
 and contact directions handled?}
