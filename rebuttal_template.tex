@@ -2,6 +2,7 @@
 \usepackage{times}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \usepackage[bookmarks=true]{hyperref}
 
 \hypersetup{
@@ -37,31 +38,32 @@ $.666/.000$, and $.684/.000$ for phase. Thus trajectory time explains part of
 contact timing, but current wrist RGB and robot motion contain additional
 contact-specific information.
 
-\begin{table}[h]
-  \centering
-  \setlength{\tabcolsep}{3pt}
-  \caption{Contact prediction AUC/F1 using phase, progress, or VPCE.}
-  \label{tab:rebuttal_predictor}
-  \begin{tabular}{lccc}
-    \toprule
-    Task & Phase-4 & Progress-20 & VPCE \\
-    \midrule
-    SWIPE  & $.670/.000$ & $.853/.597$ & $\mathbf{.963/.759}$ \\
-    WIPE   & $.666/.000$ & $.743/.406$ & $\mathbf{.885/.705}$ \\
-    INSERT & $.684/.000$ & $.808/.539$ & $\mathbf{.946/.735}$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-We additionally evaluated the conditioned policies under the same real-robot
-SWIPE protocol. Phase-DP succeeds in $12/20$ trials ($60\%$), Progress-DP in
-$14/20$ ($70\%$), and VPCE-DP in $28/30$ ($93.3\%$). Thus the gain is not only
-in contact-label prediction: replacing nominal phase/progress with the online
-VPCE horizon also improves policy execution. This is a controlled comparison
-within the same diffusion-policy family, not a reproduction of every
-hierarchical method; we will add Hierarchical Diffusion Policy and CompILE and
-avoid claiming superiority over all hierarchical policies. Unlike a discrete
-phase switch, VPCE continuously conditions one action generator with an online,
-state-dependent $15$-step contact horizon.
+\noindent
+\begin{minipage}[t]{0.49\columnwidth}
+  \centering\scriptsize
+  \textbf{TABLE I}\\[-1pt]
+  \textsc{Contact-prediction AUC/F1.}\\[2pt]
+  \setlength{\tabcolsep}{0.5pt}
+  \resizebox{\linewidth}{!}{%
+    \begin{tabular}{@{}lccc@{}}
+      \toprule
+      Task & Phase & Prog. & VPCE \\
+      \midrule
+      SWIPE  & $.670/.000$ & $.853/.597$ & $\mathbf{.963/.759}$ \\
+      WIPE   & $.666/.000$ & $.743/.406$ & $\mathbf{.885/.705}$ \\
+      INSERT & $.684/.000$ & $.808/.539$ & $\mathbf{.946/.735}$ \\
+      \bottomrule
+    \end{tabular}%
+  }
+\end{minipage}\hfill
+\begin{minipage}[t]{0.46\columnwidth}
+  \vspace{0pt}\raggedright
+  \textbf{Policy-level SWIPE:} Phase-DP, Progress-DP, and VPCE-DP achieve
+  $12/20$, $14/20$, and $28/30$. Thus online VPCE also improves execution
+  within the same DP family. Unlike a discrete phase switch, it provides a
+  state-dependent $15$-step horizon. We do not claim superiority over all
+  hierarchical methods and will discuss Hierarchical DP and CompILE.
+\end{minipage}
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
