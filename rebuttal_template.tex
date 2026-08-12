@@ -68,7 +68,9 @@ source dataset contains $639$ (545/94) complete tactile trajectories.
 For downstream target-domain training, we use 60 tactile trajectories each for
 WIPE/SWIPE/INSERT, respectively. On trajectory-disjoint held-out data, the
 target-domain teachers obtain AUC/F1 $.912/.731$, $.960/.774$, and $.940/.725$.
-
+Thus the source teacher covers diverse contact regimes, while approximately
+$60$ target trajectories suffice to generalize to unseen trajectories in each
+downstream domain.
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
 The original design emphasizes sparse but control-critical contact-transition
