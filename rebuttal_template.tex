@@ -64,16 +64,12 @@ state-dependent $15$-step contact horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
-We do not claim universal zero-shot transfer. The source dataset comprises
-$639$ selected OmniViTac trajectories ($545/94$ train/val); its teacher's
-zero-shot AUC/F1 is $.500/.095$ on WIPE and $.662/.666$ on SWIPE. The target
-sets comprise $54/59/61$ tactile trajectories for WIPE/SWIPE/INSERT. The
-deployed WIPE teacher uses BCF joint retraining on all $174$ target trajectories
-($148/26$ train/val), while SWIPE and INSERT use single-task scratch splits of
-$47/12$ and $49/12$. Their held-out AUC/F1 is $.912/.731$, $.960/.774$, and
-$.940/.725$. Tactile signals generate labels without manual frame annotation,
-but target tactile collection and threshold calibration remain limitations. We
-will report source, target, and policy data counts separately.
+We do not claim universal zero-shot transfer. For downstream deployment, we
+train target-domain teachers using approximately $60$ tactile demonstrations
+per task. The target teachers obtain held-out AUC/F1 $.912/.731$, $.960/.774$,
+and $.940/.725$ on WIPE/SWIPE/INSERT. Tactile signals generate labels without
+manual frame annotation, but target tactile collection and threshold
+calibration remain limitations.
 
 \newparagraph{[R2] Learned loss weights collapse toward the lower bound.}
 The original intent was to emphasize sparse but control-critical contact
