@@ -100,21 +100,15 @@ motion. Action-chunk prediction and receding-horizon execution provide additiona
 temporal continuity. We will revise Eq.~(9) to distinguish
 $f_{\mathrm{prop}}$ from $f_{\mathrm{tac}}$.
 
-\newparagraph{[AC, R3] Which components matter, and why retain gating?}
-We thank the Area Chair and R3 and will move the compact component ablation from
-the appendix into the main text. The submitted SWIPE results are full $9/10$,
-no horizon $2/10$, horizon only $0/10$, no tactile masking $0/10$, no gating
-$9/10$, and no loss weighting $8/10$. These results identify future-contact
-horizon conditioning and contact-adaptive tactile masking as the core success
-mechanisms, with loss weighting serving as secondary training emphasis. The
-identical $9/10$ success rates show that binary success alone does not capture
-the role of gating. As shown qualitatively in the supplementary video, the
-gated policy enters contact more directly and maintains alignment, whereas the
-no-gating policy requires repeated corrective inference/action chunks before
-establishing aligned contact. Thus gating improves contact-entry trajectory
-quality by adaptively rebalancing visual and low-dimensional feedback, even when
-the final success rate is unchanged. We will add this qualitative comparison
-and the feature-weight traces to the main text.
+\newparagraph{[AC, R3] Why retain gating if success is unchanged?}
+Although gating does not increase the final binary success rate, that metric
+does not capture trajectory quality. As shown qualitatively in the supplementary
+video, the gated policy enters contact more directly and maintains alignment,
+whereas the no-gating policy requires more corrective inference/action chunks
+before establishing aligned contact. Thus gating improves contact-entry
+trajectory quality by adaptively rebalancing visual and low-dimensional
+feedback. We will add this qualitative comparison and the feature-weight traces
+to the main text.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
 The reader and foam were held only to keep them at a predefined height and
