@@ -76,13 +76,17 @@ downstream domain.
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
 The original design emphasizes sparse but control-critical contact-transition
-samples relative to abundant free-space samples. However, R2 is correct: because
-$\gamma$ and $\delta$ are optimized through the same weighted denoising loss,
-the model can reduce the objective by lowering the weights without improving
-denoising. We therefore replace the learned term with the fixed schedule
+samples relative to abundant free-space samples. However, because $\gamma$ and
+$\delta$ are optimized through the same weighted denoising loss, the model can
+reduce the overall objective by directly lowering the loss weights without
+improving denoising. We inspected checkpoints across tasks and found that this
+behavior is task dependent: at mean contact $\bar c{=}1$, the effective weights
+for both visual (V) and visuo-tactile (VT) policies are approximately $1.005$,
+$2.1$, and $4.4$ on SWIPE, WIPE, and INSERT, respectively. This confirms that
+the learned formulation is not well posed. We therefore replace the learned
+term with the fixed schedule
 $w(\bar c)=\operatorname{clip}(1+\alpha\bar c,1,1+\alpha)$, where $\alpha$ is a
-preselected hyperparameter and receives no gradients. This preserves the
-contact-aware emphasis while removing the optimization shortcut.
+preselected hyperparameter and receives no gradients.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
