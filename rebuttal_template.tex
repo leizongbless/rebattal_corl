@@ -3,6 +3,7 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage{wrapfig}
 \usepackage[bookmarks=true]{hyperref}
 
 \hypersetup{
@@ -31,15 +32,13 @@ pre-contact stall.
 with phase/hierarchical conditioning?}
 We thank the reviewers and AC for highlighting this valuable comparison. We
 added phase-4 and normalized progress-20 predictors on the same held-out
-trajectories. VPCE obtains AUC/F1
-of $.963/.759$, $.885/.705$, and $.946/.735$ on SWIPE/WIPE/INSERT, versus
-$.853/.597$, $.743/.406$, and $.808/.539$ for progress and $.670/.000$,
-$.666/.000$, and $.684/.000$ for phase. Thus trajectory time explains part of
-contact timing, but current wrist RGB and robot motion contain additional
+trajectories. Table~I shows that VPCE consistently improves contact-prediction
+AUC/F1 over both alternatives. Thus trajectory time explains part of contact
+timing, but current wrist RGB and robot motion contain additional
 contact-specific information.
 
-\noindent
-\begin{minipage}[t]{0.49\columnwidth}
+\begin{wraptable}{l}{0.49\columnwidth}
+  \vspace{-6pt}
   \centering\scriptsize
   \textbf{TABLE I}\\[-1pt]
   \textsc{Contact-prediction AUC/F1.}\\[2pt]
@@ -55,15 +54,13 @@ contact-specific information.
       \bottomrule
     \end{tabular}%
   }
-\end{minipage}\hfill
-\begin{minipage}[t]{0.46\columnwidth}
-  \vspace{0pt}\raggedright
-  \textbf{Policy-level SWIPE:} Phase-DP, Progress-DP, and VPCE-DP achieve
-  $12/20$, $14/20$, and $28/30$. Thus online VPCE also improves execution
-  within the same DP family. Unlike a discrete phase switch, it provides a
-  state-dependent $15$-step horizon. We do not claim superiority over all
-  hierarchical methods and will discuss Hierarchical DP and CompILE.
-\end{minipage}
+  \vspace{-6pt}
+\end{wraptable}
+\noindent\textbf{Policy-level SWIPE:} Phase-DP, Progress-DP, and VPCE-DP
+achieve $12/20$, $14/20$, and $28/30$. Thus VPCE's online, state-dependent
+$15$-step horizon also improves execution within the same DP family. We will
+discuss Hierarchical DP and CompILE without claiming superiority over all
+hierarchical methods.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
