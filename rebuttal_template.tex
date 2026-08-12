@@ -63,16 +63,12 @@ horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
-The source VPCE teacher is trained on five OmniVitac task families---Cutting,
-Grasping, Wiping, Adjustment, and Assembly. After trajectory balancing, the
-source dataset contains $353$ complete tactile trajectories, split by trajectory
-into $301$ training and $52$ held-out trajectories with no overlapping frames.
-For downstream target-domain training, we use $54/59/61$ tactile trajectories for
+The source VPCE teacher is trained on the
+source dataset contains $639$ (545/94) complete tactile trajectories.
+For downstream target-domain training, we use 60 tactile trajectories each for
 WIPE/SWIPE/INSERT, respectively. On trajectory-disjoint held-out data, the
 target-domain teachers obtain AUC/F1 $.912/.731$, $.960/.774$, and $.940/.725$.
-Thus the source teacher covers diverse contact regimes, while approximately
-$60$ target trajectories suffice to generalize to unseen trajectories in each
-downstream domain.
+
 
 \newparagraph{[R2] Are the learned loss weights well posed?}
 The original design emphasizes sparse but control-critical contact-transition
@@ -111,24 +107,19 @@ feedback. We will add this qualitative comparison and the feature-weight traces
 to the main text.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
-The reader and foam were held only to keep them at a predefined height and
-orientation within the robot's reachable range. After rollout start, the holder
-did not track the end effector, reposition the object, or assist alignment; all
-methods used the same placement, success criterion, and $60$-s timeout.
-Crucially, this same protocol did not substantially rescue non-VPCE baselines on
-SWIPE: DP-V and DP-VT achieved only $1/20$ and $2/20$, versus $17/20$ and
-$18/20$ for VPCE-DP-V and VPCE-DP. Thus holding the reader at a reachable pose
-alone does not explain the method gap; with the predicted contact horizon, the
-policy committed smoothly through the final approach into contact and
-manipulation, directly addressing the pre-contact stall targeted by this work.
-We further expanded VPCE-DP to $30$ trials per task: SWIPE $28/30$ ($93.3\%$),
-WIPE $22/30$ ($73.3\%$), and INSERT $18/30$ ($60.0\%$).
-
-This setup places the interaction within the wrist view and the $15$-step
-contact horizon; VPCE is intended to regulate imminent contact rather than plan
-a long-range approach. For longer-horizon tasks, future work can add a wider or
-additional camera and a coarse approach stage before wrist-based VPCE regulates
-the final approach-to-contact transition.
+After rollout start, the holder did not track the end effector, reposition
+  the object, or assist alignment; all methods used the same initial
+  placement, success criterion, and 60-s timeout. Importantly, this shared
+  protocol did not substantially improve the non-VPCE baselines on SWIPE:
+  DP-V and DP-VT achieved only $1/20$ and $2/20$ success, whereas
+  VPCE-DP-V and VPCE-DP achieved $17/20$ and $18/20$. Thus, the
+  reachable held setup alone does not explain the performance gap; with the
+  predicted contact horizon, the policy more reliably commits through the
+  final approach into contact and manipulation, directly addressing the
+  pre-contact stall targeted by this work. To reduce sampling uncertainty
+  and operator-held variance under the same protocol, we further expanded
+  VPCE-DP to $30$ trials per task, obtaining $28/30$ on SWIPE ($93.3\%$),
+  $22/30$ on WIPE ($73.3\%$), and $18/30$ on INSERT ($60.0\%$).
 
 \newparagraph{[R2, R3] Why exclude tactile input from VPCE, and how are labels
 and contact directions handled?}
