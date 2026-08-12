@@ -50,12 +50,16 @@ contact-specific information.
     \bottomrule
   \end{tabular}
 \end{table}
-This is a predictor-level comparison, not a full reproduction of every
-hierarchical policy. We will add Hierarchical Diffusion Policy and CompILE,
-include these controlled baselines, and avoid claiming superiority over all
-hierarchical methods. Unlike a discrete phase switch, VPCE continuously
-conditions the same action generator with an online, state-dependent $15$-step
-contact horizon.
+We additionally evaluated the conditioned policies under the same real-robot
+SWIPE protocol. Phase-DP succeeds in $12/20$ trials ($60\%$), Progress-DP in
+$14/20$ ($70\%$), and VPCE-DP in $28/30$ ($93.3\%$). Thus the gain is not only
+in contact-label prediction: replacing nominal phase/progress with the online
+VPCE horizon also improves policy execution. This is a controlled comparison
+within the same diffusion-policy family, not a reproduction of every
+hierarchical method; we will add Hierarchical Diffusion Policy and CompILE and
+avoid claiming superiority over all hierarchical policies. Unlike a discrete
+phase switch, VPCE continuously conditions one action generator with an online,
+state-dependent $15$-step contact horizon.
 
 \newparagraph{[R1, R3] Does the teacher transfer, and how much target tactile
 data is required?}
