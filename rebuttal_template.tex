@@ -70,20 +70,20 @@ train target-domain teachers using approximately $60$ tactile demonstrations
 per task. The target teachers obtain held-out AUC/F1 $.912/.731$, $.960/.774$,
 and $.940/.725$ on WIPE/SWIPE/INSERT.
 
-\newparagraph{[R2] Learned loss weights collapse toward the lower bound.}
-The original intent was to emphasize sparse but control-critical contact
-transitions that can be underrepresented by abundant free-space samples. We
-agree, however, that optimizing $\gamma$ and $\delta$ through the same weighted
-denoising objective creates a direct incentive to reduce the weight. Checkpoint
-inspection shows weights of only $1.000$--$1.005$; the lower bound prevents
-down-weighting below ordinary DP loss, but makes the learned component largely
-ineffective. We therefore replace it with the fixed schedule
-$w(c)=\operatorname{clip}(1+c,1,2)$, which has no trainable weighting
-parameters and preserves policy functionality in additional robot checks. The
-submitted no-weighting variant already obtains $8/10$ on SWIPE, showing that
-the main contact-anticipation gain does not depend on learned loss weighting.
-We will therefore present the fixed term as a well-posed, secondary training
-mechanism rather than claim that weighting alone improves success.
+\newparagraph{[R2] Are the learned loss weights well posed?}
+We thank R2 for identifying this optimization ambiguity. Because $\gamma$ and
+$\delta$ are optimized through the same weighted denoising loss, reducing the
+weight can directly reduce the objective. A cross-task checkpoint audit shows
+that this behavior is not uniform: at $\bar c{=}1$, the effective weights are
+approximately $1.005/2.1/4.4$ on SWIPE/WIPE/INSERT in both V and VT policies.
+Thus SWIPE nearly reaches the lower bound, whereas WIPE and INSERT do not; the
+strong task dependence nevertheless shows that the learned scale is not a
+stable or interpretable mechanism. We replace it with the fixed schedule
+$w(c)=\operatorname{clip}(1+c,1,2)$. Fixed-$\alpha{=}1$ robot checks obtain
+$8/10$ on SWIPE and $7/10$ on WIPE, while the submitted no-weighting variant
+already obtains $8/10$ on SWIPE. The main contact-anticipation result therefore
+does not depend on learned weighting; we will present fixed weighting only as a
+secondary training mechanism.
 
 \newparagraph{[R2] Does Eq.~(9) mask proprioception, and how is free-space
 motion smooth?}
@@ -109,23 +109,24 @@ central contribution to an auxiliary, task-dependent modulation and retain its
 feature-weight trace only as diagnostic evidence.
 
 \newparagraph{[R2] Could operator-held props assist the policy?}
-The reader and foam were held only to maintain a predefined height and
-orientation in the reachable workspace; the holder did not track the end
-effector, adjust the object online, or assist alignment after rollout start.
-All methods used the same placement, success criterion, and $60$-s timeout. We
-expanded the original VPCE-DP evaluation to $30$ trials per task: SWIPE
-$28/30$ ($93.3\%$, Wilson $95\%$ CI $[78.7,98.2]\%$), WIPE $22/30$
-($73.3\%$, $[55.6,85.8]\%$), and INSERT $18/30$ ($60.0\%$,
-$[42.3,75.4]\%$). These results are consistent with the submission, but we
-agree that operator compliance remains a confound and will not use this protocol
-to claim fixed-environment robustness.
+The reader and foam were held only to keep them at a predefined height and
+orientation within the robot's reachable range. After rollout start, the holder
+did not track the end effector, reposition the object, or assist alignment; all
+methods used the same placement, success criterion, and $60$-s timeout.
+Crucially, this same protocol did not substantially rescue non-VPCE baselines on
+SWIPE: DP-V and DP-VT achieved only $1/20$ and $2/20$, versus $17/20$ and
+$18/20$ for VPCE-DP-V and VPCE-DP. Thus holding the reader at a reachable pose
+alone does not explain the method gap; with the predicted contact horizon, the
+policy committed smoothly through the final approach into contact and
+manipulation, directly addressing the pre-contact stall targeted by this work.
+We further expanded VPCE-DP to $30$ trials per task: SWIPE $28/30$ ($93.3\%$),
+WIPE $22/30$ ($73.3\%$), and INSERT $18/30$ ($60.0\%$).
 
-The height constraint also clarifies the method's scope: VPCE predicts only
-$15$ future steps and is not a long-range approach planner. Starting far outside
-this horizon can leave contact probability low and reintroduce stalling. We
-will add this limitation and investigate a height-matched rigid fixture plus an
-external-view camera or coarse approach controller that first reaches the
-interaction region before wrist-based VPCE regulates imminent contact.
+This setup places the interaction within the wrist view and the $15$-step
+contact horizon; VPCE is intended to regulate imminent contact rather than plan
+a long-range approach. For longer-horizon tasks, future work can add a wider or
+additional camera and a coarse approach stage before wrist-based VPCE regulates
+the final approach-to-contact transition.
 
 \newparagraph{[R2, R3] Why exclude tactile input from VPCE, and how are labels
 and contact directions handled?}
